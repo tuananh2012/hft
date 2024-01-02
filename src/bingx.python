@@ -1,0 +1,42 @@
+import time
+import requests
+import hmac
+from hashlib import sha256
+
+APIURL = "https://open-api.bingx.com"
+APIKEY = 'xOzjaaT2jEL5Bhi1PQBQ94Xa8DM80UmFZbzhbb8hFZqAfjwQvfBdygVAZsL6YbWLrPy20UdWky5WRP2EzOw'
+SECRETKEY = '0pExsRWV891gOiIU6SyP1wofW9D6etifcEHISs5FNPQ2oSqp35MKHibUnkf7EPvAIKiBSVckkJ9X9fEEZg'
+def demo():
+    payload = {}
+    path = '/openApi/swap/v2/quote/depth'
+    method = "GET"
+    paramsMap = {
+    "symbol": "AITECH-USDT",
+    "limit": "5"
+}
+    paramsStr = praseParam(paramsMap)
+    return send_request(method, path, paramsStr, payload)
+
+def get_sign(api_secret, payload):
+    signature = hmac.new(api_secret.encode("utf-8"), payload.encode("utf-8"), digestmod=sha256).hexdigest()
+    print("sign=" + signature)
+    return signature
+
+
+def send_request(method, path, urlpa, payload):
+    url = "%s%s?%s&signature=%s" % (APIURL, path, urlpa, get_sign(SECRETKEY, urlpa))
+    print(url)
+    headers = {
+        'X-BX-APIKEY': APIKEY,
+    }
+    response = requests.request(method, url, headers=headers, data=payload)
+    return response.text
+
+def praseParam(paramsMap):
+    sortedKeys = sorted(paramsMap)
+    paramsStr = "&".join(["%s=%s" % (x, paramsMap[x]) for x in sortedKeys])
+    return paramsStr+"&timestamp="+str(int(time.time() * 1000))
+
+
+if __name__ == '__main__':
+    print("demo:", demo())
